@@ -8,7 +8,7 @@ import os
 
 
 # Run script that enters pi'en and runs adc_sampler
-os.system("ssh pi@raspberrypi.local sudo \"./Project/adc_sampler 31250\"")
+os.system("ssh pi@raspberrypi.local sudo \"./Project/adc_sampler 31250 /home/pi/Project/data/testData.bin\"")
 os.system("scp pi@169.254.210.146:/home/pi/Project/data/adcData.bin /home/mats/Desktop/data")
 
 sampleP, data = raspi_import.raspi_import("/home/mats/Desktop/data/adcData.bin")
@@ -16,14 +16,19 @@ print(sampleP)
 data = data/4095*3.3
 print(data)
 plt.subplot(511)
+plt.xlim(0, 100)
 plt.plot(data[:, 0])
 plt.subplot(512)
+plt.xlim(0, 100)
 plt.plot(data[:, 1])
 plt.subplot(513)
+plt.xlim(0, 100)
 plt.plot(data[:, 2])
 plt.subplot(514)
+plt.xlim(0, 100)
 plt.plot(data[:, 3])
 plt.subplot(515)
+plt.xlim(0, 100)
 plt.plot(data[:, 4])
 
 
