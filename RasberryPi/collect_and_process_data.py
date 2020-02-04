@@ -52,6 +52,7 @@ plt.plot(data[:, 4])
 N = 31250
 T = 1.0/31250.0
 
+# FFT plot of ADC Ch1
 powS = np.abs(np.fft.fft(data[:, 0]))
 freqs = np.fft.fftfreq(N, T)
 idx = np.argsort(freqs)
@@ -60,28 +61,34 @@ plt.figure(2)
 plt.subplot(511)
 plt.plot(freqs[idx], powS[idx])
 
+# FFT plot of ADC Ch2
 plt.subplot(512)
 powS = np.abs(np.fft.fft(data[:, 1]))
 freqs = np.fft.fftfreq(N, T)
 idx = np.argsort(freqs)
 plt.plot(freqs[idx], powS[idx])
 
+# FFT plot of ADC Ch3
 plt.subplot(513)
 powS = np.abs(np.fft.fft(data[:, 2]))
 freqs = np.fft.fftfreq(N, T)
 idx = np.argsort(freqs)
 plt.plot(freqs[idx], powS[idx])
 
+# FFT plot of ADC Ch4
 plt.subplot(514)
 powS = np.abs(np.fft.fft(data[:, 3]))
 freqs = np.fft.fftfreq(N, T)
 idx = np.argsort(freqs)
 plt.plot(freqs[idx], powS[idx])
 
+# FFT plot of ADC Ch5
 plt.subplot(515)
 powS = np.abs(np.fft.fft(data[:, 4]))
 freqs = np.fft.fftfreq(N, T)
 idx = np.argsort(freqs)
 plt.plot(freqs[idx], powS[idx])
+
+#Enable grid and show plots
 plt.grid()
 plt.show()
