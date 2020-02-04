@@ -58,22 +58,45 @@ plt.subplot(515)
 plt.xlim(0, 100)
 plt.plot(data[:, 4])
 """
+
+data[:, 0] = data[:, 0] - np.mean(data[:, 0])
+data[:, 1] = data[:, 1] - np.mean(data[:, 1])
+data[:, 2] = data[:, 2] - np.mean(data[:, 2])
 plt.plot(data[:, 0])
 plt.plot(data[:, 1])
 plt.plot(data[:, 2])
+plt.xlim(0, 100)
 
 
 # Swapped data from adc 2 and 3 to get counter clockwise
-correlation21 = np.correlate(data[:, 0], data[:, 2])/(31250*31250)
-correlation31 = np.correlate(data[:, 0], data[:, 1])/(31250*31250)
-correlation32 = np.correlate(data[:, 2], data[:, 2])/(31250*31250)
-
-time_delay = np.array([correlation21, correlation31, correlation32])
-position_mic = np.array([[0.035, 0.003], [-0.035, 0.003], [0, -0.002]])
+correlation21 = np.correlate(data[:, 0], data[:, 2], mode='full')#/(31250*31250)
+correlation31 = np.correlate(data[:, 0], data[:, 1], mode='full')#/(31250*31250)
+correlation32 = np.correlate(data[:, 2], data[:, 1], mode='full')#/(31250*31250)
+#plt.figure(5)
+#plt.plot(correlation21)
+#plt.plot(correlation31)
+#plt.plot(correlation32)
+#plt.show()
+"""time_delay = np.array([correlation21, correlation31, correlation32])
+position_mic = np.array([[0.035, 0.03], [-0.035, 0.03], [0, -0.02]])
 
 speed_of_sound = 343
 xvec = -speed_of_sound*np.linalg.pinv(position_mic).dot(time_delay)
+print (xvec)
 theta = math.atan(xvec[1]/xvec[0])
+delay21 = np.where(correlation21 == np.max(correlation21))
+delay31 = np.where(correlation31 == np.max(correlation31))
+delay32 = np.where(correlation32 == np.max(correlation32))
+plt.figure(6)
+plt.scatter(1, delay21)
+plt.scatter(2, delay31)
+plt.scatter(3, delay32)
+plt.show()"""
+d21 = delay21[0] - 31250
+d31 = delay31[0] - 31250
+d32 = delay32[0] - 31250
+#print(delay21, " : ", delay31, " : ", delay32)
+theta = math.atan((math.sqrt(3) * (d21 + d31))/(d21 - d31 - 2 * d32))
 theta_deg = theta*180/3.14
 print(theta, " : ", theta_deg)
 
