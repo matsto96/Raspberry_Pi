@@ -8,13 +8,19 @@ import os
 
 
 # Run script that enters pi'en and runs adc_sampler
-os.system("ssh pi@raspberrypi.local sudo \"./Project/adc_sampler 31250 /home/pi/Project/data/testData.bin\"")
+# How: os.system("connect to raspberry-pi (ssh pi...), command to run on raspberry")
+# Command to run on raspberry for adc_sampler: "run adc_sampler as sudo, number of samples, where to save the file, complete path from /home). Remember when loging in to the pi, you start in /home/pi
+os.system("ssh pi@raspberrypi.local sudo \"./Project/adc_sampler 31250 /home/pi/Project/data/adcData.bin\"")
+# scp - secure copy, from where to where full path
+# can also be used to send files to the pi, scp my_file pi....
 os.system("scp pi@169.254.210.146:/home/pi/Project/data/adcData.bin /home/mats/Desktop/data")
 
+#Sample period and data
 sampleP, data = raspi_import.raspi_import("/home/mats/Desktop/data/adcData.bin")
 print(sampleP)
 data = data/4095*3.3
 print(data)
+"""
 plt.subplot(511)
 plt.xlim(0, 100)
 plt.plot(data[:, 0])
@@ -30,8 +36,13 @@ plt.plot(data[:, 3])
 plt.subplot(515)
 plt.xlim(0, 100)
 plt.plot(data[:, 4])
+"""
+plt.plot(data[:, 2])
 
-
+correlation21 = np.correlate(data[:, 0], data[:, 1])
+correlation31 = np.correlate(data[:, 0], data[:, 2])
+correlation32 = np.correlate(data[:, 1], data[:, 2])
+print(correlation21, correlation31, correlation32)
 
 N = 31250
 T = 1.0/31250.0
