@@ -7,6 +7,11 @@ import drivers
 
 import os
 
+# N = Number of samples
+# T = Period (1  / N)
+N = 31250
+T = 1.0/31250.0
+
 
 # Run script that enters pi'en and runs adc_sampler
 # How: os.system("connect to raspberry-pi (ssh pi...), command to run on raspberry")
@@ -34,17 +39,24 @@ plot_all(data)
 plt.plot(data[:, 2])
 
 
+correlation21 = CCR(data, 2, 1)
+correlation31 = CCR(data, 3, 1)
+correlation32 = CCR(data, 3, 2)
+
+delay21 = find_delay(correlation21, N)
+delay31 = find_delay(correlation31, N)
+delay32 = find_delay(correlation32, N)
+
+angle = find_theta(delay21, delay31, delay32)
+degrees = rad_to_deg(angle)
+
 correlation21 = np.correlate(data[:, 0], data[:, 1])
 correlation31 = np.correlate(data[:, 0], data[:, 2])
 correlation32 = np.correlate(data[:, 1], data[:, 2])
 print(correlation21, correlation31, correlation32)
 
 
-# N = Number of samples
-# T = Period (1  / N)
 
-N = 31250
-T = 1.0/31250.0
 
 # FFT plot of ADC Ch1
 powS = np.abs(np.fft.fft(data[:, 0]))
