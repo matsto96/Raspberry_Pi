@@ -2,6 +2,7 @@ import numpy as np
 from scipy import fft
 import matplotlib.pyplot as plt
 import raspi_import
+import math
 
 
 import os
@@ -57,13 +58,24 @@ plt.subplot(515)
 plt.xlim(0, 100)
 plt.plot(data[:, 4])
 """
+plt.plot(data[:, 0])
+plt.plot(data[:, 1])
 plt.plot(data[:, 2])
 
 
-correlation21 = np.correlate(data[:, 0], data[:, 1])
-correlation31 = np.correlate(data[:, 0], data[:, 2])
-correlation32 = np.correlate(data[:, 1], data[:, 2])
-print(correlation21, correlation31, correlation32)
+# Swapped data from adc 2 and 3 to get counter clockwise
+correlation21 = np.correlate(data[:, 0], data[:, 2])/(31250*31250)
+correlation31 = np.correlate(data[:, 0], data[:, 1])/(31250*31250)
+correlation32 = np.correlate(data[:, 2], data[:, 2])/(31250*31250)
+
+time_delay = np.array([correlation21, correlation31, correlation32])
+position_mic = np.array([[0.035, 0.003], [-0.035, 0.003], [0, -0.002]])
+
+speed_of_sound = 343
+xvec = -speed_of_sound*np.linalg.pinv(position_mic).dot(time_delay)
+theta = math.atan(xvec[1]/xvec[0])
+theta_deg = theta*180/3.14
+print(theta, " : ", theta_deg)
 
 
 # N = Number of samples
