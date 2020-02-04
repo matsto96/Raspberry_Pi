@@ -34,27 +34,29 @@ print(sampleP)
 data = data/4095*3.3
 print(data)
 
-plot_all(data)
+drivers.plot_all(data)
+plt.show()
+#plt.plot(data[:, 2])
 
-plt.plot(data[:, 2])
+
+correlation21 = drivers.CCR(data, 1, 0)
+correlation31 = drivers.CCR(data, 2, 0)
+correlation32 = drivers.CCR(data, 2, 1)
 
 
-correlation21 = CCR(data, 2, 1)
-correlation31 = CCR(data, 3, 1)
-correlation32 = CCR(data, 3, 2)
+delay21 = drivers.find_delay(correlation21)
+delay31 = drivers.find_delay(correlation31)
+delay32 = drivers.find_delay(correlation32)
 
-delay21 = find_delay(correlation21, N)
-delay31 = find_delay(correlation31, N)
-delay32 = find_delay(correlation32, N)
-
-angle = find_theta(delay21, delay31, delay32)
-degrees = rad_to_deg(angle)
+angle = drivers.find_theta(delay21, delay31, delay32)
+degrees = drivers.rad_to_deg(angle)
 
 correlation21 = np.correlate(data[:, 0], data[:, 1])
 correlation31 = np.correlate(data[:, 0], data[:, 2])
 correlation32 = np.correlate(data[:, 1], data[:, 2])
 print(correlation21, correlation31, correlation32)
-
+print("Angle: ", angle)
+print("Degrees: ", degrees)
 
 
 
@@ -97,4 +99,4 @@ plt.plot(freqs[idx], powS[idx])
 
 #Enable grid and show plots
 plt.grid()
-plt.show()
+#plt.show()
