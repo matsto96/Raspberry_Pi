@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def CCR(data, ADC_CH1, ADC_CH2):
     return np.correlate(data[:, ADC_CH1], data[:, ADC_CH2])
@@ -11,6 +12,13 @@ def find_delay(CCR_data, frequency):
             max_val = CCR_data[i]
             max_index = i
     return i / frequency
+
+def find_theta(delay_2_1, delay_3_1, delay_3_2):
+    theta = math.atan((math.sqrt(3) * (delay_2_1 + delay_3_1))/(delay_2_1 - delay_3_1 - 2 * delay_3_2))
+    return theta
+
+def rad_to_deg(radians):
+    return radias / math.pi * 180
 
 def plot_all(data):
     # Plot ADC Ch1 from 0 to 100 in X-values
