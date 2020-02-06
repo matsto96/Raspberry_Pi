@@ -37,6 +37,7 @@ plt.show()
 #plt.plot(data[:, 2])
 
 # Todo put this in drivers as a function
+# Kall fila main, og organiser det slik at kvar dag er ein funksjon
 correlation21 = drivers.CCR(data, 1, 0)
 correlation31 = drivers.CCR(data, 2, 0)
 correlation32 = drivers.CCR(data, 2, 1)
