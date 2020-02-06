@@ -2,31 +2,43 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
+import os
 
-def butter_bandpass(lowcut, highcut, fs, order=5):
+def butter_bandpass(lowcut, highcut, fs, order):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
     b, a = butter(order, [low, high], btype='band')
     return b, a
 
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=4):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
     y = lfilter(b, a, data)
     return y
 
-def CCR(data, ADC_CH1, ADC_CH2):
+def filter_data(data):
+    lowcut = 20.0
+    highcut = 1020.0
+    fs = 31250.0
     for i in range(data.shape[1]):
-        data[:, i] = data[:, i] - np.mean(data[:, i])
-    return np.correlate(data[:, ADC_CH1], data[:, ADC_CH2], mode='full')/31250
+        data[:, i] = butter_bandpass_filter(data[:, i], lowcut, highcut, fs)
+
+    return data
+
+def CCR(data, ADC_CH1, ADC_CH2):
+    #data = data - np.mean(data, axis=0)
+
+
+    return np.correlate(data[:, ADC_CH1], data[:, ADC_CH2], mode='full')
 
 def find_delay(CCR_data):
-    ans = np.where(CCR_data == np.max(CCR_data))
-    return (ans[0] - 31250)
+    ans = np.argmax(CCR_data)
+    return (ans - 31250 + 100)
 
 def find_theta(delay_2_1, delay_3_1, delay_3_2):
-    delay = abs((delay_2_1 + delay_3_1))/(delay_2_1 - delay_3_1 - 2 * delay_3_2)
-    theta = math.atan((math.sqrt(3) * delay))
+    delay_u = delay_2_1 + delay_3_1
+    delay_b = delay_2_1 - delay_3_1 - 2 * delay_3_2
+    theta = math.atan2(math.sqrt(3) * delay_u, delay_b)
     return theta
 
 def rad_to_deg(radians):
@@ -90,7 +102,7 @@ def transfer_data_from_pi(file_name):
     os.system(command)
 
 def plot_correlation(correlation):
-    x = np.array([a for a in range(-31249, 31250)])
+    x = np.array([a for a in range(-31249 + 100, 31250 - 100)])
     plt.figure(1)
     plt.plot(x, correlation)
     plt.xlim(-2000, 2000)
