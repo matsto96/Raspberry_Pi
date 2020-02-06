@@ -13,14 +13,12 @@ N = 31250
 T = 1.0/31250.0
 
 
-# Run script that enters pi'en and runs adc_sampler
-# How: os.system("connect to raspberry-pi (ssh pi...), command to run on raspberry")
-# Command to run on raspberry for adc_sampler: "run adc_sampler as sudo, number of samples, where to save the file, complete path from /home). Remember when loging in to the pi, you start in /home/pi
-os.system("ssh pi@raspberrypi.local sudo \"./Project/adc_sampler 31250 /home/pi/Project/data/adcData.bin\"")
-# scp - secure copy, from where to where full path
-# can also be used to send files to the pi, scp my_file pi....
-os.system("scp pi@169.254.210.146:/home/pi/Project/data/adcData.bin /home/mats/Desktop/data")
 
+##os.system("ssh pi@raspberrypi.local sudo \"./Project/adc_sampler 31250 /home/pi/Project/data/adcData.bin\"")
+##os.system("scp pi@169.254.210.146:/home/pi/Project/data/adcData.bin /home/mats/Desktop/data")
+
+#drivers.run_adc("adcData.bin")"
+#drivers.transfer_data_from_pi("adcData.bin")
 
 #Sample period and data
 
@@ -59,44 +57,4 @@ print("Angle: ", angle)
 print("Degrees: ", degrees)
 
 
-
-# FFT plot of ADC Ch1
-powS = np.abs(np.fft.fft(data[:, 0]))
-freqs = np.fft.fftfreq(N, T)
-idx = np.argsort(freqs)
-
-plt.figure(2)
-plt.subplot(511)
-plt.plot(freqs[idx], powS[idx])
-
-# FFT plot of ADC Ch2
-plt.subplot(512)
-powS = np.abs(np.fft.fft(data[:, 1]))
-freqs = np.fft.fftfreq(N, T)
-idx = np.argsort(freqs)
-plt.plot(freqs[idx], powS[idx])
-
-# FFT plot of ADC Ch3
-plt.subplot(513)
-powS = np.abs(np.fft.fft(data[:, 2]))
-freqs = np.fft.fftfreq(N, T)
-idx = np.argsort(freqs)
-plt.plot(freqs[idx], powS[idx])
-
-# FFT plot of ADC Ch4
-plt.subplot(514)
-powS = np.abs(np.fft.fft(data[:, 3]))
-freqs = np.fft.fftfreq(N, T)
-idx = np.argsort(freqs)
-plt.plot(freqs[idx], powS[idx])
-
-# FFT plot of ADC Ch5
-plt.subplot(515)
-powS = np.abs(np.fft.fft(data[:, 4]))
-freqs = np.fft.fftfreq(N, T)
-idx = np.argsort(freqs)
-plt.plot(freqs[idx], powS[idx])
-
-#Enable grid and show plots
-plt.grid()
-#plt.show()
+drivers.plot_fft(data, N, T, 5)
