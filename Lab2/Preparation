@@ -2,12 +2,17 @@ Preparation for Lab 2
 	1. Describe with code how cross-correlation can be used to find effective delay between audio signals with sampling frequency, f_s.
 		Hint: For which delay does abs(cross-corr) has a maximum
 	cc = np.correlation(signal_1, signal_2, mode='full')
-	Delay = max(cc).sample_num - num_samples
+	Delay = max(cc).index - num_samples
 		
 	2. 
-		a. If you have a triangular array like in figure 4, with length d, and the sampling frequency is fs; what is the maximum number of samples with delay that can be generated?
+		a. If you have a triangular array like in figure 4, with length d, and the sampling frequency is fs; 
+			what is the maximum number of samples with delay that can be generated?
+			
 			Speed of sound ~ 343 m/s - V_sound
 			Max_samples_between_microphones = (d/V_sound)/f_s
 			
-		b. Can you detect several different angles if the maximum delay between microphones is 2 samples or 4 samples? Hint: A wide range of angles will give the same combination of three delays (in integer numbers of samples), n21, n31 and n32!
-			2 samples: Not many, only 6 angles possible. If you can recreate the complete wave, it is possible to detect any angle
+		b. Can you detect several different angles if the maximum delay between microphones is 2 samples or 4 samples?
+		Hint: A wide range of angles will give the same combination of three delays (in integer numbers of samples), n21, n31 and n32!
+			2 samples: Not many, only 6 angles possible. If you can recreate the complete wave, 
+			it is possible to detect any angle
+			4 samples: 
