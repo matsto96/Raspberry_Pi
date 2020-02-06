@@ -3,7 +3,9 @@ import math
 import matplotlib.pyplot as plt
 
 def CCR(data, ADC_CH1, ADC_CH2):
-    return np.correlate(data[:, ADC_CH1], data[:, ADC_CH2], mode='full')
+    for i in range(data.shape[1]):
+        data[:, i] = data[:, i] - np.mean(data[:, i])
+    return np.correlate(data[:, ADC_CH1], data[:, ADC_CH2], mode='full')/31250
 
 def find_delay(CCR_data):
     ans = np.where(CCR_data == np.max(CCR_data))
@@ -73,3 +75,9 @@ def transfer_data_from_pi(file_name):
     # can also be used to send files to the pi, scp my_file pi....
     command = "scp pi@169.254.210.146:/home/pi/Project/data/" + file_name + " /home/mats/Desktop/data"
     os.system(command)
+
+def plot_correlation(correlation):
+    x = np.array([a for a in range(-31249, 31250)])
+    plt.figure(1)
+    plt.plot(x, correlation)
+    plt.xlim(-2000, 2000)
