@@ -1,0 +1,26 @@
+Preparation for lab 3
+
+Beregn teoretisk dopplerskift(f_d) som funksjon av radiell hastighet(v_r) ved 24.13 GHz senterfrekvens(f_s).
+
+f_d =  2*f_s*v_r / c  # c er lysets hastighet
+
+f_d = 2*24.13*10^9 [Hz] / (3*10^8 [m/s] * v_r ~ 160.87*v_r [Hz]
+
+
+Beregn antennevinning utifrå ligning 5, G ~ 10 log_10 (30000/(theta_e*theta_a))
+
+theta_e = 80°
+theta_a = 12°
+
+=> G ~ 10 log_10 (30000/(80*12)) ~ 14.95
+
+Ifølge databladet til radaren, G = 12.5
+
+
+Beregn radartverrsnittet ved 24 GHz til en hjørnereflektor som har sidekant a = 25 cm
+
+Radartverrsnitt, O = 4*Pi*a⁴/(3*lambda²)
+
+lambda = c / 24 GHz
+
+O = 4*Pi*0.25⁴/(3*(3*10⁸/(24*10⁹))²) ~ 104.7 m²
