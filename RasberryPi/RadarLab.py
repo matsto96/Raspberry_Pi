@@ -1,6 +1,7 @@
 import drivers
 import raspi_import
 import matplotlib.pyplot as plt
+import math
 
 import numpy as np
 carrier_freq = 24.125*1000000000   # 24.125 GHz
@@ -39,4 +40,17 @@ freqs = np.fft.fftfreq(N, P)
 max_freq = freqs[np.argmax(powS)]
 velocity = abs(max_freq) / 160.87
 
-print(velocity)
+correlate = drivers.CCR(data, 0, 1)
+delay = drivers.find_delay(correlate)
+
+if delay < 0:
+    velocity = velocity
+elif delay > 0:
+    velocity = -velocity
+print("Vel: ", velocity)
+
+"""
+I: ADC1
+Q: ADC2
+
+"""

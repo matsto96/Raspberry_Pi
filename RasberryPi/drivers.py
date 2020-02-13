@@ -33,7 +33,7 @@ def CCR(data, ADC_CH1, ADC_CH2):
 
 def find_delay(CCR_data):
     ans = np.argmax(CCR_data)
-    return (ans - 31250 + 100)
+    return (ans - 31250)
 
 def find_theta(delay_2_1, delay_3_1, delay_3_2):
     delay_u = delay_2_1 + delay_3_1
@@ -109,18 +109,18 @@ def plot_correlation(correlation):
 
 def velocity_radarData(data):
     velocity = np.zeros([3125, 1])
-    N = 10
+    N = 3125
     P = 1.0/31250.0
 
-    for i in range(3125):
+    for i in range(10):
         powS = np.abs(np.fft.fft(data[10*i:10*(i+1), 0]))
         freqs = np.fft.fftfreq(N, P)
 
         max_freq = freqs[np.argmax(powS)]
         velocity[i] = abs(max_freq) / 160.87
 
-        dot_product = np.dot(data[10*i:10*(i+1), 0], data[10*i:10*(i+1), 1])
-        norm_product = np.sqrt(np.dot(data[10*i:10*(i+1), 0].T, data[10*i:10*(i+1), 0])) * np.sqrt(np.dot(data[10*i:10*(i+1), 1].T, data[10*i:10*(i+1), 1]))
+        dot_product = np.dot(data[3125*i:3125*(i+1), 0], data[3125*i:3125*(i+1), 1])
+        norm_product = np.sqrt(np.dot(data[3125*i:3125*(i+1), 0].T, data[3125*i:3125*(i+1), 0])) * np.sqrt(np.dot(data[3125*i:3125*(i+1), 1].T, data[3125*i:3125*(i+1), 1]))
         phase_shift_rad = math.acos(dot_product / norm_product)
         theta_phase = rad_to_deg(phase_shift_rad)
         if theta_phase < -60 and -120 > theta_phase:
