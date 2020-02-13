@@ -44,31 +44,31 @@ def find_theta(delay_2_1, delay_3_1, delay_3_2):
 def rad_to_deg(radians):
     return radians / math.pi * 180
 
-def plot_all(data):
+def plot_all(data, xlim=100):
     # Plot ADC Ch1 from 0 to 100 in X-values
 
     plt.subplot(511)
-    plt.xlim(0, 100)
+    plt.xlim(0, xlim)
     plt.plot(data[:, 0])
 
     # Plot ADC Ch2 from 0 to 100 in X-values
     plt.subplot(512)
-    plt.xlim(0, 100)
+    plt.xlim(0, xlim)
     plt.plot(data[:, 1])
 
     # Plot ADC Ch3 from 0 to 100 in X-values
     plt.subplot(513)
-    plt.xlim(0, 100)
+    plt.xlim(0, xlim)
     plt.plot(data[:, 2])
 
     # Plot ADC Ch4 from 0 to 100 in X-values
     plt.subplot(514)
-    plt.xlim(0, 100)
+    plt.xlim(0, xlim)
     plt.plot(data[:, 3])
 
     # Plot ADC Ch5 from 0 to 100 in X-values
     plt.subplot(515)
-    plt.xlim(0, 100)
+    plt.xlim(0, xlim)
     plt.plot(data[:, 4])
     return True
 
@@ -106,3 +106,62 @@ def plot_correlation(correlation):
     plt.figure(1)
     plt.plot(x, correlation)
     plt.xlim(-2000, 2000)
+
+def velocity_radarData(data):
+    velocity = np.zeros([3125, 1])
+    N = 10
+    P = 1.0/31250.0
+
+    for i in range(3125):
+        powS = np.abs(np.fft.fft(data[10*i:10*(i+1), 0]))
+        freqs = np.fft.fftfreq(N, P)
+
+        max_freq = freqs[np.argmax(powS)]
+        velocity[i] = abs(max_freq) / 160.87
+
+        dot_product = np.dot(data[10*i:10*(i+1), 0], data[10*i:10*(i+1), 1])
+        norm_product = np.sqrt(np.dot(data[10*i:10*(i+1), 0].T, data[10*i:10*(i+1), 0])) * np.sqrt(np.dot(data[10*i:10*(i+1), 1].T, data[10*i:10*(i+1), 1]))
+        phase_shift_rad = math.acos(dot_product / norm_product)
+        theta_phase = rad_to_deg(phase_shift_rad)
+        if theta_phase < -60 and -120 > theta_phase:
+            velocity[i] = -velocity[i]
+        elif theta_phase > 60 and 120 < theta_phase:
+            velocity[i] = velocity[i]
+        else:
+            velocity[i] = -1
+
+    return velocity
+
+def plot_radar_velocity(data):
+    velocity = velocity_radarData(data)
+    plt.figure(1)
+    plt.clf()
+    plt.plot(velocity)
+    plt.xlabel('Step')
+    plt.ylabel('Velocity')
+    plt.title('Calculated velocity from radar data')
+
+def radar_log(data):
+    velocity = velocity_radarData(data)
+    f = open('measurement', 'a')
+    f.write(velocity.mean())
+
+    while True:
+        try:
+            input = float(input("\"True\" velocity (measured by other means): "))
+            break
+        except ValueError:
+            print("Not a valid number. Use \'.\' not \',\'.")
+
+
+    f.write(input)
+    f.close()
+
+def analyse_log():
+    f = open('measurement', 'r')
+    fig = go.Figure(data=[go.Table(header=dict(values=['Radar_velocity', '\"True\" velocity', 'Error']),
+                                   cells=dict(values=[[100, 90, 80, 90], [95, 85, 75, 95]]))
+                          ])
+
+def remove_DC(data, dc):
+    return data - dc
