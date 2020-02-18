@@ -3,6 +3,8 @@ import math
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import os
+import plotly.graph_objects as go
+
 
 def butter_bandpass(lowcut, highcut, fs, order):
     nyq = 0.5 * fs
@@ -141,27 +143,47 @@ def plot_radar_velocity(data):
     plt.ylabel('Velocity')
     plt.title('Calculated velocity from radar data')
 
-def radar_log(data):
-    velocity = velocity_radarData(data)
+def radar_log(velocity):
     f = open('measurement', 'a')
-    f.write(velocity.mean())
 
     while True:
         try:
-            input = float(input("\"True\" velocity (measured by other means): "))
+            input1 = input("\"True\" velocity (measured by other means): ")
             break
         except ValueError:
             print("Not a valid number. Use \'.\' not \',\'.")
 
-
-    f.write(input)
+    f.write(str(velocity))
+    f.write("\n")
+    f.write(input1)
+    f.write("\n")
     f.close()
 
 def analyse_log():
+    radar_velocity = []
+    real_velocity = []
     f = open('measurement', 'r')
-    fig = go.Figure(data=[go.Table(header=dict(values=['Radar_velocity', '\"True\" velocity', 'Error']),
+    line = f.readline()
+    while line:
+        radar_velocity.append(round(float(line.strip('\n')), 3))
+        line = f.readline()
+        real_velocity.append(float(line.strip('\n')))
+        line = f.readline()
+
+    radar_velocity = np.asarray(radar_velocity)
+    real_velocity = np.asarray(real_velocity)
+    standard_avvik = np.sqrt(np.mean(np.square(radar_velocity - real_velocity)))
+    print(standard_avvik)
+    plt.figure(1)
+    plt.plot(radar_velocity, label='Radar')
+    plt.plot(real_velocity, label='Measured')
+    plt.title('Radar vs measured velocit')
+    """fig = go.Figure(data=[go.Table(
+        header=dict(values=['Radar_velocity', '\"True\" velocity', 'Error']),
                                    cells=dict(values=[[100, 90, 80, 90], [95, 85, 75, 95]]))
-                          ])
+                          ])"""
+    plt.show()
+
 
 def remove_DC(data, dc):
     return data - dc

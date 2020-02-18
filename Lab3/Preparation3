@@ -24,3 +24,12 @@ Radartverrsnitt, O = 4*Pi*a⁴/(3*lambda²)
 lambda = c / 24 GHz
 
 O = 4*Pi*0.25⁴/(3*(3*10⁸/(24*10⁹))²) ~ 104.7 m²
+
+
+
+Feilkilder til målingene:
+ - Støy på signalet frå radaren.
+ - Unøyaktig måling av "Sann verdi".
+ - Vi måler gjennomsnitt over ein lengre periode enn det radaren gjør. Kan vere forskjellig gj. hastighet i det sekundet den måler.
+ - Forskjellig avstand og hastighet mellom kvar måling
+ - 
