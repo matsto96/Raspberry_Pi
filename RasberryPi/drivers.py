@@ -3,7 +3,6 @@ import math
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import os
-import plotly.graph_objects as go
 
 
 def butter_bandpass(lowcut, highcut, fs, order):
@@ -110,27 +109,26 @@ def plot_correlation(correlation):
     plt.xlim(-2000, 2000)
 
 def velocity_radarData(data):
-    velocity = np.zeros([3125, 1])
-    N = 3125
-    P = 1.0/31250.0
+    N = 31250
+    P = 1 / N
 
-    for i in range(10):
-        powS = np.abs(np.fft.fft(data[10*i:10*(i+1), 0]))
-        freqs = np.fft.fftfreq(N, P)
+    powS = np.abs(np.fft.fft(data[:, 0]))
+    freqs = np.fft.fftfreq(N, P)
 
+    max_freq = freqs[np.argmax(powS)]
+    while abs(max_freq) < 15:
+        powS[np.argmax(powS)] = 0
         max_freq = freqs[np.argmax(powS)]
-        velocity[i] = abs(max_freq) / 160.87
 
-        dot_product = np.dot(data[3125*i:3125*(i+1), 0], data[3125*i:3125*(i+1), 1])
-        norm_product = np.sqrt(np.dot(data[3125*i:3125*(i+1), 0].T, data[3125*i:3125*(i+1), 0])) * np.sqrt(np.dot(data[3125*i:3125*(i+1), 1].T, data[3125*i:3125*(i+1), 1]))
-        phase_shift_rad = math.acos(dot_product / norm_product)
-        theta_phase = rad_to_deg(phase_shift_rad)
-        if theta_phase < -60 and -120 > theta_phase:
-            velocity[i] = -velocity[i]
-        elif theta_phase > 60 and 120 < theta_phase:
-            velocity[i] = velocity[i]
-        else:
-            velocity[i] = -1
+    velocity = abs(max_freq) / 160.87
+
+    correlate = CCR(data, 0, 1)
+    delay = find_delay(correlate)
+
+    if delay < 0:
+        velocity = velocity
+    elif delay > 0:
+        velocity = -velocity
 
     return velocity
 
@@ -143,8 +141,8 @@ def plot_radar_velocity(data):
     plt.ylabel('Velocity')
     plt.title('Calculated velocity from radar data')
 
-def radar_log(velocity):
-    f = open('measurement', 'a')
+def radar_log(velocity, log_name='measurement'):
+    f = open(log_name, 'a')
 
     while True:
         try:
@@ -159,10 +157,10 @@ def radar_log(velocity):
     f.write("\n")
     f.close()
 
-def analyse_log():
+def analyse_log(log_name='measurement'):
     radar_velocity = []
     real_velocity = []
-    f = open('measurement', 'r')
+    f = open(log_name, 'r')
     line = f.readline()
     while line:
         radar_velocity.append(round(float(line.strip('\n')), 3))
@@ -175,15 +173,37 @@ def analyse_log():
     standard_avvik = np.sqrt(np.mean(np.square(radar_velocity - real_velocity)))
     print(standard_avvik)
     plt.figure(1)
-    plt.plot(radar_velocity, label='Radar')
-    plt.plot(real_velocity, label='Measured')
-    plt.title('Radar vs measured velocit')
-    """fig = go.Figure(data=[go.Table(
-        header=dict(values=['Radar_velocity', '\"True\" velocity', 'Error']),
-                                   cells=dict(values=[[100, 90, 80, 90], [95, 85, 75, 95]]))
-                          ])"""
+    plt.clf()
+    x = np.array([a for a in range(len(radar_velocity))])
+    plt.errorbar(x, radar_velocity, standard_avvik, linestyle='None', marker='^', capsize=3, label='Radar')
+    plt.scatter([], [])  # To get different color on radar and measured
+    plt.scatter(x, real_velocity, label='Measured')
+    plt.xlabel('Measurement nr.')
+    plt.ylabel('Velocity in m/s')
+    plt.title('Radar vs measured velocity, with standard deviation')
+    plt.legend()
     plt.show()
 
 
 def remove_DC(data, dc):
     return data - dc
+
+def plot_fft_IQ(data, N, P):
+    data = data[:, :2]
+    # FFT plot of ADC Ch1
+    plt.figure(1)
+    plt.clf()
+    letter = 'I'
+    for i in range(2):
+        powS = np.abs(np.fft.fft(data[:, i]))
+        freqs = np.fft.fftfreq(N, P)
+        idx = np.argsort(freqs)
+        plt.plot(freqs[idx], 20*np.log(powS[idx]), label=letter)
+        letter = 'Q'
+
+    # Enable grid and show plots
+    plt.grid()
+    plt.xlim(0, 1000)
+    plt.legend()
+    plt.show()
+    return True
