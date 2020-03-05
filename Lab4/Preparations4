@@ -48,5 +48,6 @@ K_red = K_green = K_blue = 1
 
 e) Forventer at rød fargekanal fungerer best da det har større sjanse for å nå gjennom fingeren
 
-2) 
+2) SNR = 10log10(mu_signal / sigma_pulsenoise)
+SNR = sum(frekvensbøtter med signal)/sum(frekvensbøtter med støy) i frekvens domenet
 
