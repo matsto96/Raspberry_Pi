@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import os
+import scipy.signal as scisi
 
 
 def butter_bandpass(lowcut, highcut, fs, order):
@@ -18,9 +19,9 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=4):
     return y
 
 def filter_data(data):
-    lowcut = 20.0
-    highcut = 1020.0
-    fs = 31250.0
+    lowcut = 0.5
+    highcut = 3
+    fs = 25.0
     for i in range(data.shape[1]):
         data[:, i] = butter_bandpass_filter(data[:, i], lowcut, highcut, fs)
 
@@ -189,12 +190,12 @@ def remove_DC(data, dc):
     return data - dc
 
 def plot_fft_IQ(data, N, P):
-    data = data[:, :2]
+    data = data[:, :]
     # FFT plot of ADC Ch1
     plt.figure(1)
     plt.clf()
     letter = 'I'
-    for i in range(2):
+    for i in range(3):
         powS = np.abs(np.fft.fft(data[:, i]))
         freqs = np.fft.fftfreq(N, P)
         idx = np.argsort(freqs)
@@ -203,7 +204,65 @@ def plot_fft_IQ(data, N, P):
 
     # Enable grid and show plots
     plt.grid()
-    plt.xlim(0, 1000)
+    plt.xlim(0, 15)
     plt.legend()
     plt.show()
     return True
+
+def collect_cam_data(old, name):
+    if not old:
+        run_adc(name)
+        transfer_data_from_pi(name)
+
+
+def roi_video(input, output):
+    os.system("python /home/mats/PycharmProjects/RasberryPi/read_video_and_extract_roi.py " + input + " " + output)
+
+def take_video(name):
+    # Take video
+    command = "ssh pi@raspberrypi.local \"sudo raspivid -t 10000 -v -o pivideo.h264\""
+    os.system(command)
+
+    # Convert to MP4
+    command = "ssh pi@raspberrypi.local \"sudo MP4Box -add pivideo.h264 /home/pi/Project/data/" + name + "\""
+    os.system(command)
+
+    # Delete h264 file
+    command = "ssh pi@raspberrypi.local \"sudo rm pivideo.h264 \""
+    os.system(command)
+
+    # Copy file to laptop
+    command = "scp pi@169.254.210.146:/home/pi/Project/data/" + name + " /home/mats/Desktop/data"
+    os.system(command)
+
+    command = "ssh pi@raspberrypi.local \"sudo rm /home/pi/Project/data/" + name + "\""
+    os.system(command)
+
+
+def take_photo(name):
+    # Take video
+    command = "ssh pi@raspberrypi.local \"sudo raspistill -v -o /home/pi/Project/data/" + name + "\""
+    os.system(command)
+
+    # Copy file to laptop
+    command = "scp pi@169.254.210.146:/home/pi/Project/data/" + name + " /home/mats/Desktop/data"
+    os.system(command)
+
+def find_pulse(data, N, P):
+    data = data[:, 0]
+
+    powS = np.abs(np.fft.fft(data))
+    freqs = np.fft.fftfreq(N, P)
+    idx = np.argsort(freqs)
+    peaks = scisi.find_peaks(powS, distance=2)
+    pulses = np.zeros((len(peaks[0]), 1))
+    i = 0
+    for a in peaks[0]:
+        if powS[a] > 0.4*np.max(powS):
+            pulses[i] = freqs[a]
+            i += 1
+
+    pulses = pulses[pulses > 0]
+    pulses = pulses*60
+    print("Puls frekvenser, Slag i minuttet: ", pulses)
+
