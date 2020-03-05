@@ -1,6 +1,54 @@
-Forberedelser
+Wavelengths: R = 600 nm, G = 515 nm, B = 460 nm.
 
-1 Fotontransportberegninger
-Optisk penetrasjonsdybde i typisk menneskevev for kameraet's sensitive bølgelengder.
+mua: R = 50.0560, G = 122.5891, B = 205.0237    [1/m]
+musr: R = 2652.9, G = 3429.6, B = 4369.5        [1/m]
+
+1) a)    Penetration depth:
+d = sqrt(1 / (3 * (mua + musr) * mua)) [sqrt(1 / 3 * (2/m) * 1/m) = sqrt(m^2/6) = m]
+
+d_red = 1569.61 [um]
+d_green = 873.95 [um]
+d_blue = 596.16 [um]
+
+b) C = sqrt(3 * mua * (mua + musr))
+
+Unit: sqrt(1/m * 1/m) = 1/m
+
+C_red = 637.1008528     [1/m]
+C_green = 1142.969376   [1/m]
+C_blue = 1677.395995    [1/m]
+
+T = exp(-Cd)
+
+d = 0.015 m (15 mm)
+
+T_red = exp(-637.1008528 * 0.015) = 70.739E-6 = 0.000070739 = 0.0070739 %
+T_green = exp(-1142.969376 * 0.015) = 35.827E-9 = 0.000000035827 = 0.0000035827 %
+T_blue = exp(-1677.395995 * 0.015) = 11.823E-12 = 0.000000000011827 = 0.0000000011827 %
+
+c) Forventer at lyset har gått 2*d inn mediet:
+2d_red = 3139.22 um
+2d_green = 1747.9 um
+2d_blue = 1192.32 um
+
+d)
+For bvf = 1:
+mua: R = 2530.6, G = 9783.9, B = 18027.4    [1/m]
+musr: R = 2652.9, G = 3429.6, B = 4369.5    [1/m]
+
+C_red = 6273.1      [1/m]
+C_green = 19693.6   [1/m]
+C_blue = 34803.4    [1/m]
+
+T_red = exp(-6273.1 * 0.015) = 1.3647E-41
+T_green = exp(-19693.6 * 0.015) = 0
+T_blue = exp(-34803.4 * 0.015) = 0
+
+K_red = K_green = K_blue = 1
+
+e) Forventer at rød fargekanal fungerer best da det har større sjanse for å nå gjennom fingeren
+
+2) SNR = 10log10(mu_signal / sigma_pulsenoise)
+SNR = sum(frekvensbøtter med signal)/sum(frekvensbøtter med støy) i frekvens domenet
 
 
