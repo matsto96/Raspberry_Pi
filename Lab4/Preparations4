@@ -32,3 +32,21 @@ c) Forventer at lyset har gått 2*d inn mediet:
 2d_blue = 1192.32 um
 
 d)
+For bvf = 1:
+mua: R = 2530.6, G = 9783.9, B = 18027.4    [1/m]
+musr: R = 2652.9, G = 3429.6, B = 4369.5    [1/m]
+
+C_red = 6273.1      [1/m]
+C_green = 19693.6   [1/m]
+C_blue = 34803.4    [1/m]
+
+T_red = exp(-6273.1 * 0.015) = 1.3647E-41
+T_green = exp(-19693.6 * 0.015) = 0
+T_blue = exp(-34803.4 * 0.015) = 0
+
+K_red = K_green = K_blue = 1
+
+e) Forventer at rød fargekanal fungerer best da det har større sjanse for å nå gjennom fingeren
+
+2) 
+
