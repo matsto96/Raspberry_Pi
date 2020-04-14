@@ -6,6 +6,23 @@ import os
 import scipy.signal as scisi
 
 
+#-------------------------------------------------------------- Raspberry funksjoner --------------------------------------------------------------------------
+def run_adc(save_file_name):
+    # Run script that enters pi'en and runs adc_sampler
+    # How: os.system("connect to raspberry-pi (ssh pi...), command to run on raspberry")
+    # Command to run on raspberry for adc_sampler: "run adc_sampler as sudo, number of samples, where to save the file, complete path from /home). Remember when loging in to the pi, you start in /home/pi
+    command = "ssh pi@raspberrypi.local \"sudo ./Project/adc_sampler 31250 /home/pi/Project/data/" + save_file_name + "\""
+    os.system(command)
+
+def transfer_data_from_pi(file_name):
+    # scp - secure copy, from where to where full path
+    # can also be used to send files to the pi, scp my_file pi....
+    command = "scp pi@169.254.210.146:/home/pi/Project/data/" + file_name + " /home/mats/Desktop/data"
+    os.system(command)
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#---------- Fra: https://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter     ------------------------
+
 def butter_bandpass(lowcut, highcut, fs, order):
     nyq = 0.5 * fs
     low = lowcut / nyq
@@ -27,89 +44,88 @@ def filter_data(data):
 
     return data
 
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------- Funksjoner for Lab 2 ----------------------------------------------------------------------------
+
 def CCR(data, ADC_CH1, ADC_CH2):
-    #data = data - np.mean(data, axis=0)
-
-
+    # Korrelasjon mellom kanaler
     return np.correlate(data[:, ADC_CH1], data[:, ADC_CH2], mode='full')
 
 def find_delay(CCR_data):
+    # Finner delayet på data ved å ta den største toppen av korrelasjonen. Siden Korrelasjonen ikke er null-sentrert, trekker vi fra lengden til den orginale data = CCR_data/2 = 31250 i dette tilfellet.
+    # Kunne brukt len(CCR_data)/2 for å gjøre det mer generelt
     ans = np.argmax(CCR_data)
     return (ans - 31250)
 
 def find_theta(delay_2_1, delay_3_1, delay_3_2):
+    # Finner vinkelen til lydkilden basert på delays (radianer).
     delay_u = delay_2_1 + delay_3_1
     delay_b = delay_2_1 - delay_3_1 - 2 * delay_3_2
     theta = math.atan2(math.sqrt(3) * delay_u, delay_b)
     return theta
 
 def rad_to_deg(radians):
+    # Gjør om fra radianer til grader
     return radians / math.pi * 180
 
 def plot_all(data, xlim=100):
-    # Plot ADC Ch1 from 0 to 100 in X-values
+    # Plotter alle kanalene. Forventer 5 kanaler.
 
+    # Plot ADC Ch1 fra 0 til 100 i X-verdi
     plt.subplot(511)
     plt.xlim(0, xlim)
     plt.plot(data[:, 0])
 
-    # Plot ADC Ch2 from 0 to 100 in X-values
+    # Plot ADC Ch2 fra 0 til 100 i X-verdi
     plt.subplot(512)
     plt.xlim(0, xlim)
     plt.plot(data[:, 1])
 
-    # Plot ADC Ch3 from 0 to 100 in X-values
+    # Plot ADC Ch3 fra 0 til 100 i X-verdi
     plt.subplot(513)
     plt.xlim(0, xlim)
     plt.plot(data[:, 2])
 
-    # Plot ADC Ch4 from 0 to 100 in X-values
+    # Plot ADC Ch4 fra 0 til 100 i X-verdi
     plt.subplot(514)
     plt.xlim(0, xlim)
     plt.plot(data[:, 3])
 
-    # Plot ADC Ch5 from 0 to 100 in X-values
+    # Plot ADC Ch5 fra 0 til 100 i X-verdi
     plt.subplot(515)
     plt.xlim(0, xlim)
     plt.plot(data[:, 4])
     return True
 
-def plot_fft(data, N, P, num):  # data, number of samples, periode, how many datasets to plot
-    # FFT plot of ADC Ch1
+def plot_fft(data, N, P, num):  # data, antall samples, periode, antall dataset som skal plottes
+    # FFT plot of ADC Chx
     plt.figure(1)
     plt.clf()
     for i in range(num):
         powS = np.abs(np.fft.fft(data[:, i]))
         freqs = np.fft.fftfreq(N, P)
         idx = np.argsort(freqs)
+        for a in idx:
+            if abs(freqs[a]) < 10:
+                powS[a] = 0
         plt.subplot(511 + i)
         plt.plot(freqs[idx], powS[idx])
-
     # Enable grid and show plots
     plt.grid()
     plt.show()
     return True
 
-def run_adc(save_file_name):
-    # Run script that enters pi'en and runs adc_sampler
-    # How: os.system("connect to raspberry-pi (ssh pi...), command to run on raspberry")
-    # Command to run on raspberry for adc_sampler: "run adc_sampler as sudo, number of samples, where to save the file, complete path from /home). Remember when loging in to the pi, you start in /home/pi
-    command = "ssh pi@raspberrypi.local \"sudo ./Project/adc_sampler 31250 /home/pi/Project/data/" + save_file_name + "\""
-    os.system(command)
-
-def transfer_data_from_pi(file_name):
-    # scp - secure copy, from where to where full path
-    # can also be used to send files to the pi, scp my_file pi....
-    command = "scp pi@169.254.210.146:/home/pi/Project/data/" + file_name + " /home/mats/Desktop/data"
-    os.system(command)
-
 def plot_correlation(correlation):
-    x = np.array([a for a in range(-31249 + 100, 31250 - 100)])
+    # Plotter korrelasjon. Null sentrert.
+    x = np.array([a for a in range(-31249, 31250)])
     plt.figure(1)
     plt.plot(x, correlation)
     plt.xlim(-2000, 2000)
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------- Funksjoner for Lab 3 ----------------------------------------------------------------------------
 
 def velocity_radarData(data):
+    # Finner hastigheten til objekt
     N = 31250
     P = 1 / N
 
@@ -134,6 +150,7 @@ def velocity_radarData(data):
     return velocity
 
 def plot_radar_velocity(data):
+    # Plot av hastighet. Ikke brukt?
     velocity = velocity_radarData(data)
     plt.figure(1)
     plt.clf()
@@ -143,8 +160,8 @@ def plot_radar_velocity(data):
     plt.title('Calculated velocity from radar data')
 
 def radar_log(velocity, log_name='measurement'):
+    # Lagrer hastigheten i en egen fil for å finne standardavvik senere. Input fra konsol om reell hastighet.
     f = open(log_name, 'a')
-
     while True:
         try:
             input1 = input("\"True\" velocity (measured by other means): ")
@@ -159,6 +176,7 @@ def radar_log(velocity, log_name='measurement'):
     f.close()
 
 def analyse_log(log_name='measurement'):
+    # Leser loggen, rekner standardavvik og plotter radar data opp mot reell data, med standardavvik
     radar_velocity = []
     real_velocity = []
     f = open(log_name, 'r')
@@ -187,9 +205,11 @@ def analyse_log(log_name='measurement'):
 
 
 def remove_DC(data, dc):
+    # Fjerner dc bidraget fra data:
     return data - dc
 
 def plot_fft_IQ(data, N, P):
+    # FFT plot for radar data, I og Q kanal
     data = data[:, :]
     # FFT plot of ADC Ch1
     plt.figure(1)
@@ -209,16 +229,16 @@ def plot_fft_IQ(data, N, P):
     plt.show()
     return True
 
-def collect_cam_data(old, name):
-    if not old:
-        run_adc(name)
-        transfer_data_from_pi(name)
-
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------- Funksjoner for Lab 4 ----------------------------------------------------------------------------
 
 def roi_video(input, output):
+    # Kaller på den utleverte read_video_and_extract_roi filen.
     os.system("python /home/mats/PycharmProjects/RasberryPi/read_video_and_extract_roi.py " + input + " " + output)
 
 def take_video(name):
+    # Funksjon som tar video, gjør det om til MP4 og kopierer filen fra Pi'en til PC.
+
     # Take video
     command = "ssh pi@raspberrypi.local \"sudo raspivid -t 10000 -v -o pivideo.h264\""
     os.system(command)
@@ -227,7 +247,7 @@ def take_video(name):
     command = "ssh pi@raspberrypi.local \"sudo MP4Box -add pivideo.h264 /home/pi/Project/data/" + name + "\""
     os.system(command)
 
-    # Delete h264 file
+    # Delete h264 file. Important, otherwise new videos will have problems.
     command = "ssh pi@raspberrypi.local \"sudo rm pivideo.h264 \""
     os.system(command)
 
@@ -240,7 +260,7 @@ def take_video(name):
 
 
 def take_photo(name):
-    # Take video
+    # Enkel funksjon for å ta bilde. Bare brukt til å teste at kamera virker
     command = "ssh pi@raspberrypi.local \"sudo raspistill -v -o /home/pi/Project/data/" + name + "\""
     os.system(command)
 
@@ -249,6 +269,7 @@ def take_photo(name):
     os.system(command)
 
 def find_pulse(data, N, P):
+    # Bruker FFT for å finne pulsen
     data = data[:, 0]
 
     powS = np.abs(np.fft.fft(data))
@@ -258,7 +279,9 @@ def find_pulse(data, N, P):
     pulses = np.zeros((len(peaks[0]), 1))
     i = 0
     for a in peaks[0]:
-        if powS[a] > 0.4*np.max(powS):
+        if a > data.shape[0]:
+            break
+        elif powS[a] > 0.4*np.max(powS):
             pulses[i] = freqs[a]
             i += 1
 
@@ -266,3 +289,9 @@ def find_pulse(data, N, P):
     pulses = pulses*60
     print("Puls frekvenser, Slag i minuttet: ", pulses)
 
+def find_pulse_correlation(data, fps):
+    # Finne puls ved korrelasjon
+    corr = CCR(data, 0, 0)
+    delay = np.argmax(corr) - data.shape[0]
+    puls = abs(delay) * fps * 60
+    print("Puls: ", puls, "bpm")
