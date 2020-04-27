@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
 import os
 import scipy.signal as scisi
+import statistics as stat
 
 
 #-------------------------------------------------------------- Raspberry funksjoner --------------------------------------------------------------------------
@@ -234,7 +235,8 @@ def plot_fft_IQ(data, N, P):
 
 def roi_video(input, output):
     # Kaller på den utleverte read_video_and_extract_roi filen.
-    os.system("python /home/mats/PycharmProjects/RasberryPi/read_video_and_extract_roi.py " + input + " " + output)
+    #os.system("python /home/mats/PycharmProjects/RasberryPi/read_video_and_extract_roi.py " + input + " " + output)
+    os.system("python /Users/Jostein/Desktop/SensorLab/Raspberry_Pi/RasberryPi/read_video_and_extract_roi.py " + input + " " + output)
 
 def take_video(name):
     # Funksjon som tar video, gjør det om til MP4 og kopierer filen fra Pi'en til PC.
@@ -268,9 +270,9 @@ def take_photo(name):
     command = "scp pi@169.254.210.146:/home/pi/Project/data/" + name + " /home/mats/Desktop/data"
     os.system(command)
 
-def find_pulse(data, N, P):
+def find_pulse(data, N, channel, P):
     # Bruker FFT for å finne pulsen
-    data = data[:, 0]
+    data = data[:, channel]
 
     powS = np.abs(np.fft.fft(data))
     freqs = np.fft.fftfreq(N, P)
@@ -286,12 +288,74 @@ def find_pulse(data, N, P):
             i += 1
 
     pulses = pulses[pulses > 0]
-    pulses = pulses*60
-    print("Puls frekvenser, Slag i minuttet: ", pulses)
+    pulses_bpm = pulses*60
 
-def find_pulse_correlation(data, fps):
+    if channel == 0:
+        print('FFT Red BPM: ', pulses_bpm)
+    if channel == 1:
+        print('FFT Green BPM: ', pulses_bpm)
+    if channel == 2:
+        print('FFT Blue BPM: ', pulses_bpm)
+
+    return pulses_bpm
+
+def find_pulse_correlation(data, channel, fps):
     # Finne puls ved korrelasjon
-    corr = CCR(data, 0, 0)
-    delay = np.argmax(corr) - data.shape[0]
-    puls = abs(delay) * fps * 60
-    print("Puls: ", puls, "bpm")
+    corr = np.correlate(data[:, channel], data[:, channel], mode='full') #lag korrolasjon med seg selv
+    corr_peaks, corr_dict = scisi.find_peaks(corr) #finn peaks i korrolasjonen
+    
+    difference_corr = np.array([]) #lag array for alle forskjellene
+
+    for n in range(1, (len(corr_peaks)-1)):
+        difference_corr = np.append(difference_corr, (corr_peaks[n+1]-corr_peaks[n])) #Regn ut forskjellen mellom peaks
+
+    corr_bpm = np.mean(60 / ((difference_corr * fps))) #Finn puls ved hjelp av gjennomsnittet av delay mellom peaks
+
+    if channel == 0:
+        print('Cross Red BPM: ', corr_bpm)
+    if channel == 1:
+        print('Cross Green BPM: ', corr_bpm)
+    if channel == 2:
+        print('Cross Blue BPM: ', corr_bpm)
+
+    return corr_bpm
+
+
+def find_SNR(data, channel, period):
+    samples = data.shape[0]
+    freq = np.fft.fftfreq(samples, period)
+    spectrum = np.fft.fft(data, axis=0)
+
+    roi = np.where((freq >= 0.5) & (freq < 4))
+    spec_roi = spectrum[roi]
+    max_freq = np.argmax(spec_roi[:, channel])
+
+    fft_dbm = 10*np.log10(np.abs(spec_roi[:, channel]**2)/spec_roi[:, channel].shape[0])
+
+    S = np.abs(fft_dbm[max_freq])
+    N = np.abs(np.mean(fft_dbm))
+    SNR = S - N
+
+    if channel == 0:
+        print('SNR Red: ', SNR)
+    if channel == 1:
+        print('SNR Green: ', SNR)
+    if channel == 2:
+        print('SNR Blue: ', SNR)
+
+def find_standard_deviation(red_fft, green_fft, blue_fft, red_autocorr, green_autocorr, blue_autocorr):
+    data_list = []
+
+
+    data_list.append(red_fft)
+    data_list.append(green_fft)
+    data_list.append(blue_fft)
+    data_list.append(red_autocorr)
+    data_list.append(green_autocorr)
+    data_list.append(blue_autocorr)
+
+    print("Data_list: ", data_list)
+
+    std = stat.stdev(data_list)
+    print("STD: ", std)
+
